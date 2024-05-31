@@ -1,4 +1,4 @@
-function flag = mercatorplot(data, referencePoints, HRTFtarget)
+function out = mercatorplot(data, referencePoints, HRTFtarget)
 figure;
 
 % Unique target positions
@@ -21,7 +21,7 @@ for i = 1:numel(targetPositions)
     % Filter data for the current target position
     currentPosition = targetPositions(i);
     filteredData = data(data(:, 1) == currentPosition, :);
-    % disp(filteredData)
+    out(:,:,i) = filteredData;
 
     % Next tile
     nexttile;
@@ -89,7 +89,7 @@ end
 % Set uniform axis limits
 allAxes = findall(gcf, 'Type', 'axes');
 for k = 1:numel(allAxes)
-    set(allAxes(k), 'XLim', [-pi pi], 'YLim', [-2 2]);
+    set(allAxes(k), 'XLim', [deg2rad(-30) pi], 'YLim', [-1 1]);
 end
 
 % Overall plot title
@@ -99,8 +99,6 @@ sgtitle(sprintf('[%s] Mercator Projection Plot of Azimuth and Elevation by Targe
 % figure;
 % axis off;
 legend(plotHandles(1:3), 'Stimulus 0', 'Stimulus 1', 'Reference Point', 'Location', 'best');
-
-flag = 1;
 
     function [x, y] = mercatorProjection(lambda, phi)
         % Mercator projection formula

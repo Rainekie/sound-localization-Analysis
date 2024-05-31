@@ -16,10 +16,30 @@ dat = movevars(dat, "StimuliPos", 'After', "TargetElevation");
 dat = movevars(dat, "StimuliNum", 'After', "Stimuli");
 clear tmp
 
+for i = 1:height(dat)
+    if strcmp(cell2mat(table2array(dat(i,7))), 'DL_Based')
+        dat{i,7} = {'MIT_KEMAR'};
+    end
+end
+
 % make separate tables based on the HRTF model
 for i = 1:length(HRTFtarget)
     rows = strcmp(dat.HRTFType, HRTFtarget(i));
     tmp = dat(rows, :);
+    for j = 1:height(tmp)
+
+
+        if table2array(tmp(j,9)) > 180
+            tmp(j,9) = tmp(j,9) - 360;
+        end
+
+        tmp{j,10} = tmp{j,10} * -1;
+        if table2array(tmp(j,10)) > 180
+            % disp('d')
+            tmp(j,10) = tmp(j,10) - 360;
+        end
+        tmp{j,10} = tmp{j,10} * -1;
+    end
     resArray(:,:,i) = [tmp.StimuliPos tmp.StimuliNum tmp.Player_sAzimuth tmp.Player_sElevation tmp.ReactionTime];
 end
 

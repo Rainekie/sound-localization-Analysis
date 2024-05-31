@@ -1,4 +1,4 @@
-function flag = sphereplot(data, referencePoints, HRTFtarget)
+function out = sphereplot(data, referencePoints, HRTFtarget)
 figure;
 % Unique target positions
 targetPositions = unique(data(:, 1));
@@ -17,7 +17,7 @@ for i = 1:numel(targetPositions)
     % Filter data for the current target position
     currentPosition = targetPositions(i);
     filteredData = data(data(:, 1) == currentPosition, :);
-    % disp(filteredData)
+    out(:,:,i) = filteredData;
 
     % Next tile
     nexttile;
@@ -83,6 +83,4 @@ sgtitle(sprintf('[%s] Unit Sphere Plot of Azimuth and Elevation by Target Positi
 
 % Create a common legend
 legend(plotHandles(1:3), 'Stimulus 0', 'Stimulus 1', 'Reference Point', 'Location', 'best');
-
-flag = 1;
 end

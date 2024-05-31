@@ -1,10 +1,10 @@
-function diffplot(resArray,referencePoints,HRTFtarget,flag)
+function tmpdiffs = diffplot(resArray, referencePoints, HRTFtarget, flag)
 if flag(1)
     % Plot the results
     figure;
 
     % Prepare the tiled layout
-    t = tiledlayout(3,1);
+    t = tiledlayout(3,2);
     t.TileSpacing = 'compact';
     t.Padding = 'compact';
 
@@ -43,18 +43,48 @@ if flag(1)
                 y = cos(elevationRad) .* sin(azimuthRad);
                 z = sin(elevationRad);
 
-                % Calculate Euclidean distances
-                diff = sqrt((x - refX).^2 + (y - refY).^2 + (z - refZ).^2);
+                % Calculate great-circle distances using Haversine formula
+                % Haversine formula parameters
+                deltaAzimuth = azimuthRad - refAzimuthRad;
+                deltaElevation = elevationRad - refElevationRad;
+
+                % Haversine distance calculation
+                a = sin(deltaElevation/2).^2 + cos(refElevationRad) .* cos(elevationRad) .* sin(deltaAzimuth/2).^2;
+                c = 2 * atan2(sqrt(a), sqrt(1 - a));
+                diff = c; % Since we are on a unit sphere, radius = 1
+
                 differences = [differences; diff];
             end
+            tmpdiffs(:,i, HRTFs) = differences;
 
             % Calculate mean and standard deviation of differences
-            meanDiff = mean(differences);
-            stdDiff = std(differences);
-            meanDifferences = [meanDifferences; meanDiff];
-            stdDifferences = [stdDifferences; stdDiff];
+            % コサインとサインを計算
+            cosines = cos(differences);
+            sines = sin(differences);
+
+            % コサインとサインの平均を計算
+            mean_cos = mean(cosines);
+            mean_sin = mean(sines);
+
+            % 平均角度を計算
+            mean_angle = atan2(mean_sin, mean_cos);
+            % 中央値を計算（0から2πの範囲にラッピング）
+            wrapped_radians = mod(differences, 2*pi);
+            median_angle = median(wrapped_radians);
+            
+            % ベクトルの長さを計算
+            R = sqrt(mean_cos^2 + mean_sin^2);
+            
+            % 分散と標準偏差を計算
+            circular_variance = 1 - R;
+            circular_stddev = sqrt(-2 * log(R));
+
+            meanDifferences = [meanDifferences; mean_angle];
+            stdDifferences = [stdDifferences; circular_stddev];
             targetLabels{i} = sprintf('Az%d El%d', refAzimuth, refElevation);
         end
+        meanDifferences = rad2deg(meanDifferences);
+        stdDifferences = rad2deg(stdDifferences);
 
         nexttile;
         % Bar plot for mean differences
@@ -72,15 +102,75 @@ if flag(1)
 
         % Set plot labels and title
         xlabel('Target Position');
-        ylabel('Mean Distance Difference');
-        ylim([-0.5, 1.3])
-        title(sprintf("[%s]", HRTFtarget(HRTFs)), 'Interpreter', 'none');
+        ylabel('Mean Distance Difference [deg]');
+        ylim([-10, 60])
+        title(sprintf("[%s] each position", HRTFtarget(HRTFs)), 'Interpreter', 'none');
         set(gca, 'XTick', 1:length(targetLabels), 'XTickLabel', targetLabels);
+        grid on;
+        hold off;
+
+        % mean's mean value
+        meanDifferencess = [];
+        stdDifferencess = [];
+        nums = 1:length(meanDifferences);
+        odd_numbers = nums(mod(nums, 2) == 1);
+        even_numbers = nums(mod(nums, 2) == 0);
+        row = [odd_numbers; even_numbers];
+        % コサインとサインを計算
+        for j = 1:2
+            
+            cosines1 = cos(tmpdiffs(:,row(j,:)));
+            sines1 = sin(tmpdiffs(:,row(j,:)));
+
+            % コサインとサインの平均を計算
+            mean_cos1 = mean(cosines1, 'all');
+            mean_sin1 = mean(sines1, 'all');
+
+            % 平均角度を計算
+            mean_angle1 = atan2(mean_sin1, mean_cos1);
+
+            % 中央値を計算（0から2πの範囲にラッピング）
+            wrapped_radians1 = mod(tmpdiffs(:,row(j,:)), 2*pi);
+            median_angle1 = median(wrapped_radians1);
+
+            % ベクトルの長さを計算
+            R1 = sqrt(mean_cos1^2 + mean_sin1^2);
+
+            % 分散と標準偏差を計算
+            circular_variance1 = 1 - R1;
+            circular_stddev1 = sqrt(-2 * log(R1));
+
+            meanDifferencess = [meanDifferencess; mean_angle1];
+            stdDifferencess = [stdDifferencess; circular_stddev1];
+        end
+        meanDifferencess = rad2deg(meanDifferencess);
+        stdDifferencess = rad2deg(stdDifferencess);
+
+        nexttile;
+        % Bar plot for mean differences
+        b = bar(meanDifferencess);
+        hold on;
+
+        % Change the color of even-numbered bars
+        barColors = repmat([0 0.4470 0.7410], length(meanDifferencess), 1); % Default color
+        barColors(2:2:end, :) = repmat([0.8500 0.3250 0.0980], length(2:2:length(meanDifferencess)), 1); % Color for even bars
+        b.FaceColor = 'flat';
+        b.CData = barColors;
+
+        % Error bars for standard deviations
+        errorbar(1:length(meanDifferencess), meanDifferencess, stdDifferencess, 'k', 'LineStyle', 'none');
+
+        % Set plot labels and title
+        xlabel('Target Position');
+        ylabel('Mean Distance Difference [deg]');
+        ylim([-10, 40])
+        title(sprintf("[%s] vertical comparison", HRTFtarget(HRTFs)), 'Interpreter', 'none');
+        set(gca, 'XTick', 1:2, 'XTickLabel', {'Horizontal', 'Upper'});
         grid on;
         hold off;
     end
 
-    title(t, 'Mean Distance Difference from Reference Positions with Variability');
+    title(t, 'Mean Great-Circular Distance Difference from Reference Positions with Variability');
 end
 
 if flag(2)
@@ -161,7 +251,7 @@ if flag(2)
         % Set plot labels and title
         xlabel('Target Position');
         ylabel('Mean Azimuth Difference (degrees)');
-        ylim([-5, 50])
+        ylim([-5, 30])
         title(sprintf("[%s] Azimuth Differences", HRTFtarget(HRTFs)), 'Interpreter', 'none');
         set(gca, 'XTick', 1:length(targetLabels), 'XTickLabel', targetLabels);
         grid on;
@@ -184,7 +274,7 @@ if flag(2)
         % Set plot labels and title
         xlabel('Target Position');
         ylabel('Mean Elevation Difference (degrees)');
-        ylim([-5, 50])
+        ylim([-5, 30])
         title(sprintf("[%s] Elevation Differences", HRTFtarget(HRTFs)), 'Interpreter', 'none');
         set(gca, 'XTick', 1:length(targetLabels), 'XTickLabel', targetLabels);
         grid on;

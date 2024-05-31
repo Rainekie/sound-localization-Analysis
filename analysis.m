@@ -4,10 +4,10 @@ clc;
 
 %% vars
 % Change the number to 1 to display specific plot
-plotflags = [0, 0, 0, 0, 0, 0]; %Sphere, Mercator, Mollweide, Distance diff, Azi/Ele diff, RT diff
-filename = ["RaisPilotTest.csv", "DummyPilotTest.csv"];
+plotflags = [0, 0, 0, 1, 0, 0]; %Sphere, Mercator, Mollweide, Distance diff, Azi/Ele diff, RT diff
+filename = ["Sean.csv", "Sungjoon.csv"];
 
-HRTFtarget = ["Generic", "3D_Based", "DL_Based"];
+HRTFtarget = ["Generic", "3D_Based", "MIT_KEMAR"];
 referencePoints = readmatrix('refPoints.csv');
 
 %% read csv
@@ -28,14 +28,14 @@ for HRTFs = 1:3
     if plotflags(1)
         sphereplot(data, referencePoints, HRTFtarget(HRTFs));
     elseif plotflags(2)
-        mercatorplot(data, referencePoints, HRTFtarget(HRTFs));
+        hoge{HRTFs} = mercatorplot(data, referencePoints, HRTFtarget(HRTFs));
     elseif plotflags(3)
         mollweideplot(data, referencePoints, HRTFtarget(HRTFs));
     end
 end
 
 %% plot4/5/6. Distance/Azimuth and Elevation/Reaction time differences
-diffplot(resArray, referencePoints, HRTFtarget, plotflags(4:6))
+statdata = diffplot(resArray, referencePoints, HRTFtarget, plotflags(4:6));
 
 
 
