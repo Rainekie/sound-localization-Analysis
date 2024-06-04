@@ -13,6 +13,8 @@ if flag(1)
         % Initialize arrays to store differences and standard deviations
         meanDifferences = [];
         stdDifferences = [];
+        maeValues = [];
+        rmseValues = [];
         targetLabels = cell(size(referencePoints, 1), 1);
 
         % Loop through each target position
@@ -79,12 +81,26 @@ if flag(1)
             circular_variance = 1 - R;
             circular_stddev = sqrt(-2 * log(R));
 
+            % Calculate Mean Angular Error (MAE)
+            mae = mean(abs(differences));
+
+            % Calculate Root Mean Square Error (RMSE)
+            rmse = sqrt(mean(differences.^2));
+
             meanDifferences = [meanDifferences; mean_angle];
             stdDifferences = [stdDifferences; circular_stddev];
+            maeValues = [maeValues; mae];
+            rmseValues = [rmseValues; rmse];
             targetLabels{i} = sprintf('Az%d El%d', refAzimuth, refElevation);
         end
         meanDifferences = rad2deg(meanDifferences);
         stdDifferences = rad2deg(stdDifferences);
+
+        % disp('Mean Angular Error (MAE) values:');
+        % disp(maeValues);
+        % 
+        % disp('Root Mean Square Error (RMSE) values:');
+        % disp(rmseValues);
 
         nexttile;
         % Bar plot for mean differences
@@ -118,9 +134,8 @@ if flag(1)
         row = [odd_numbers; even_numbers];
         % コサインとサインを計算
         for j = 1:2
-            
-            cosines1 = cos(tmpdiffs(:,row(j,:)));
-            sines1 = sin(tmpdiffs(:,row(j,:)));
+            cosines1 = cos(tmpdiffs(:,row(j,:), HRTFs));
+            sines1 = sin(tmpdiffs(:,row(j,:), HRTFs));
 
             % コサインとサインの平均を計算
             mean_cos1 = mean(cosines1, 'all');
@@ -130,7 +145,7 @@ if flag(1)
             mean_angle1 = atan2(mean_sin1, mean_cos1);
 
             % 中央値を計算（0から2πの範囲にラッピング）
-            wrapped_radians1 = mod(tmpdiffs(:,row(j,:)), 2*pi);
+            wrapped_radians1 = mod(tmpdiffs(:,row(j,:), HRTFs), 2*pi);
             median_angle1 = median(wrapped_radians1);
 
             % ベクトルの長さを計算
