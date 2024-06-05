@@ -1,6 +1,14 @@
-function out = sphereplot(data, referencePoints, HRTFtarget)
+function sphereplot(data, referencePoints, HRTFtarget)
 figure;
 % Unique target positions
+rowsToDelete = []; 
+for i = 1:size(data,1)
+    if data(i,1) == 0
+        rowsToDelete = [rowsToDelete; i];
+    end
+end
+data(rowsToDelete, :) = [];
+
 targetPositions = unique(data(:, 1));
 
 % Prepare the tiled layout
@@ -14,10 +22,11 @@ plotHandles = [];
 
 % Loop through each target position
 for i = 1:numel(targetPositions)
+    clear filteredData
     % Filter data for the current target position
     currentPosition = targetPositions(i);
     filteredData = data(data(:, 1) == currentPosition, :);
-    out(:,:,i) = filteredData;
+    % out(:,:,i) = filteredData;
 
     % Next tile
     nexttile;

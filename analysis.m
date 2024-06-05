@@ -4,9 +4,9 @@ clc;
 
 %% vars
 % Change the number to 1 to display specific plot
-plotflags = [0, 1, 0, 1, 0, 1]; %Sphere, Mercator, Mollweide, Distance diff, Azi/Ele diff, RT diff
-filename = ["Sean.csv", "Sungjoon.csv", "MJ.csv", "Parn.csv", "Jongho.csv", "Jieun.csv"];
-% filename = ["Jongho.csv"];
+plotflags = [1, 0, 0, 0, 0, 0]; %Sphere, Mercator, Mollweide, Distance diff, Azi/Ele diff, RT diff
+ filename = ["Sean.csv", "MJ.csv", "Parn.csv", "Jongho.csv",  "Hongjun.csv", "Youngjun.csv"];%"Jieun.csv", "Kangeun.csv",
+%filename = ["Kangeun.csv"];
 
 HRTFtarget = ["Generic", "3D_Based", "MIT_KEMAR"];
 referencePoints = readmatrix('refPoints.csv');

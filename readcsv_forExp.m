@@ -22,12 +22,68 @@ for i = 1:height(dat)
     end
 end
 
-% make separate tables based on the HRTF model
+% % make separate tables based on the HRTF model
+% for i = 1:length(HRTFtarget)
+%     rows = strcmp(dat.HRTFType, HRTFtarget(i));
+%     tmp = dat(rows, :);
+%     for j = 1:height(tmp)
+%         disp(j)
+%         switch table2array(tmp(j,1))
+%             case 1
+%                 disp(j)
+%                 disp(tmp(j,:))
+%                 tmp(j,:) = [];
+%                 continue
+%             case 85
+%                 disp(j)
+%                 disp(tmp(j,:))
+%                 tmp(j,:) = [];
+%                 continue
+%             case 169
+%                 disp(j)
+%                 disp(tmp(j,:))
+%                 tmp(j,:) = [];
+%                 continue
+%             case 253
+%                 disp(j)
+%                 disp(tmp(j,:))
+%                 tmp(j,:) = [];
+%                 continue
+%         end
+% 
+%         if table2array(tmp(j,9)) > 180
+%             tmp(j,9) = tmp(j,9) - 360;
+%         end
+% 
+%         tmp{j,10} = tmp{j,10} * -1;
+%         if table2array(tmp(j,10)) > 180
+%             % disp('d')
+%             tmp(j,10) = tmp(j,10) - 360;
+%         end
+%         tmp{j,10} = tmp{j,10} * -1;
+% 
+%         % if tmp{j,10} < 5 || tmp{j,10} > 10
+%         %     continue
+%         % end
+%     end
+%     resArray(:,:,i) = [tmp.StimuliPos tmp.StimuliNum tmp.Player_sAzimuth tmp.Player_sElevation tmp.ReactionTime];
+% end
+
+% Make separate tables based on the HRTF model
 for i = 1:length(HRTFtarget)
     rows = strcmp(dat.HRTFType, HRTFtarget(i));
     tmp = dat(rows, :);
-    for j = 1:height(tmp)
+    rowsToDelete = []; % Initialize an array to store rows to be deleted
 
+    for j = 1:height(tmp)
+        disp(j)
+        switch table2array(tmp(j,1))
+            case {1, 85, 169, 253}
+                % disp(j)
+                % disp(tmp(j,:))
+                rowsToDelete = [rowsToDelete; j]; % Add row to the delete list
+                continue
+        end
 
         if table2array(tmp(j,9)) > 180
             tmp(j,9) = tmp(j,9) - 360;
@@ -35,12 +91,26 @@ for i = 1:length(HRTFtarget)
 
         tmp{j,10} = tmp{j,10} * -1;
         if table2array(tmp(j,10)) > 180
-            % disp('d')
             tmp(j,10) = tmp(j,10) - 360;
         end
         tmp{j,10} = tmp{j,10} * -1;
+
+        % If tmp{j,10} < 5 || tmp{j,10} > 10
+        %     continue
+        % end
     end
-    resArray(:,:,i) = [tmp.StimuliPos tmp.StimuliNum tmp.Player_sAzimuth tmp.Player_sElevation tmp.ReactionTime];
+
+    % Delete rows after processing
+    tmp(rowsToDelete, :) = [];
+
+    % Dynamically determine the number of rows for resArray
+    numRows = height(tmp);
+    if i == 1
+        resArray = zeros(numRows, 5, length(HRTFtarget)); % Initialize resArray with correct size
+    end
+
+    % Store results
+    resArray(1:numRows, :, i) = [tmp.StimuliPos tmp.StimuliNum tmp.Player_sAzimuth tmp.Player_sElevation tmp.ReactionTime];
 end
 
 out = resArray;
