@@ -141,7 +141,7 @@ if flag(1)
         % Set plot labels and title
         xlabel('Target Position');
         ylabel('Differences [deg]');
-        ylim([-3 75])
+        ylim([- 60])
         title(sprintf("[%s] each position", HRTFtarget(HRTFs)), 'Interpreter', 'none');
         grid on;
 
@@ -215,14 +215,12 @@ if flag(1)
             data = [data; tmpalldat{i}];
             group = [group; i * ones(length(tmpalldat{i}), 1)];
         end
-        data = rad2deg(data);
 
         % ボックスプロットを作成
         nexttile;
         boxplot(data, group);
         xlabel('Target Position');
         ylabel('Mean Distance Difference [deg]');
-        ylim([-3 75])
         title(sprintf("[%s] vertical comparison", HRTFtarget(HRTFs)), 'Interpreter', 'none');
         set(gca, 'XTick', 1:2, 'XTickLabel', {'Horizontal', 'Upper'});
         grid on;

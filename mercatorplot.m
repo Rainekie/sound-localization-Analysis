@@ -21,7 +21,7 @@ for i = 1:numel(targetPositions)
     % Filter data for the current target position
     currentPosition = targetPositions(i);
     filteredData = data(data(:, 1) == currentPosition, :);
-    out(:,:,i) = filteredData;
+    out{i} = filteredData;
 
     % Next tile
     nexttile;
